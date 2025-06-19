@@ -16,9 +16,10 @@ bulan_dict = {
 def miliar_formatter(x, pos):
     return f'{x:,.1f}'
 
-def with_all_checkbox(label, options, key):
-    select_all = st.sidebar.checkbox(f"Pilih semua {label}", key=f"{key}_all")
-    selected = st.sidebar.multiselect(f"Pilih {label}:", options=options, default=options if select_all else [], key=f"{key}_select")
+def with_all_checkbox(label, options, key, use_sidebar=True):
+    location = st.sidebar if use_sidebar else st
+    select_all = location.checkbox(f"Pilih semua {label}", key=f"{key}_all")
+    selected = location.multiselect(f"Pilih {label}:", options=options, default=options if select_all else [], key=f"{key}_select")
     return selected
 
 data_file = st.sidebar.file_uploader("📂 Upload file Excel", type=[".xlsx", ".xls"])
@@ -98,17 +99,19 @@ if data_file:
             st.markdown("---")
 
             st.subheader("🥧 Total Deposito per Bank (dalam Miliar Rupiah)")
-            selected_bulan_pie = with_all_checkbox("Bulan (Pie Chart)", all_months, "pie_bulan")
-            selected_bank_pie = with_all_checkbox("Bank (Pie Chart)", all_banks, "pie_bank")
-            selected_tahun_pie = with_all_checkbox("Tahun (Pie Chart)", all_years, "pie_tahun")
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("**Filter khusus Pie Chart**")
+            pie_bulan = with_all_checkbox("Bulan (Pie Chart)", all_months, "pie_bulan")
+            pie_bank = with_all_checkbox("Bank (Pie Chart)", all_banks, "pie_bank")
+            pie_tahun = with_all_checkbox("Tahun (Pie Chart)", all_years, "pie_tahun")
 
             df_pie = df.copy()
-            if selected_bulan_pie:
-                df_pie = df_pie[df_pie['NamaBulan'].isin(selected_bulan_pie)]
-            if selected_bank_pie:
-                df_pie = df_pie[df_pie['Bank'].isin(selected_bank_pie)]
-            if selected_tahun_pie:
-                df_pie = df_pie[df_pie['Tahun'].isin(selected_tahun_pie)]
+            if pie_bulan:
+                df_pie = df_pie[df_pie['NamaBulan'].isin(pie_bulan)]
+            if pie_bank:
+                df_pie = df_pie[df_pie['Bank'].isin(pie_bank)]
+            if pie_tahun:
+                df_pie = df_pie[df_pie['Tahun'].isin(pie_tahun)]
 
             deposito_bank = df_pie.groupby('Bank')['NominalM'].sum()
             fig_pie, ax_pie = plt.subplots()
