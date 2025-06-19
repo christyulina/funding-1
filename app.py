@@ -68,33 +68,34 @@ if data_file:
 
             df_filtered['BulanTahun'] = pd.Categorical(df_filtered['BulanTahun'], categories=ordered_bulans, ordered=True)
 
-            st.subheader("📈 Total Bunga Deposito per Bulan (Miliar Rp)")
-            bunga_bulanan = df_filtered.groupby('BulanTahun')['BungaM'].sum().sort_index()
-            fig1, ax1 = plt.subplots()
-            bunga_bulanan.plot(kind='line', marker='o', ax=ax1)
-            ax1.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            for i, v in enumerate(bunga_bulanan):
-                ax1.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
-            ax1.set_ylabel("Total Bunga (Miliar Rp)")
-            ax1.set_xlabel("Bulan")
-            ax1.tick_params(axis='x', rotation=45)
-            ax1.grid(True)
-            st.pyplot(fig1)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("📈 Total Bunga Deposito per Bulan (Miliar Rp)")
+                bunga_bulanan = df_filtered.groupby('BulanTahun')['BungaM'].sum().sort_index()
+                fig1, ax1 = plt.subplots()
+                bunga_bulanan.plot(kind='line', marker='o', ax=ax1)
+                ax1.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                for i, v in enumerate(bunga_bulanan):
+                    ax1.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
+                ax1.set_ylabel("Total Bunga (Miliar Rp)")
+                ax1.set_xlabel("Bulan")
+                ax1.tick_params(axis='x', rotation=45)
+                ax1.grid(True)
+                st.pyplot(fig1)
 
-            st.markdown("---")
-
-            st.subheader("📊 Total Deposito per Bulan (Miliar Rp)")
-            deposito_bulanan = df_filtered.groupby('BulanTahun')['NominalM'].sum().sort_index()
-            fig2, ax2 = plt.subplots()
-            deposito_bulanan.plot(kind='bar', ax=ax2)
-            ax2.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            for i, v in enumerate(deposito_bulanan):
-                ax2.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
-            ax2.set_ylabel("Total Deposito (Miliar Rp)")
-            ax2.set_xlabel("Bulan")
-            ax2.tick_params(axis='x', rotation=45)
-            ax2.grid(axis='y')
-            st.pyplot(fig2)
+            with col2:
+                st.subheader("📊 Total Deposito per Bulan (Miliar Rp)")
+                deposito_bulanan = df_filtered.groupby('BulanTahun')['NominalM'].sum().sort_index()
+                fig2, ax2 = plt.subplots()
+                deposito_bulanan.plot(kind='bar', ax=ax2)
+                ax2.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                for i, v in enumerate(deposito_bulanan):
+                    ax2.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
+                ax2.set_ylabel("Total Deposito (Miliar Rp)")
+                ax2.set_xlabel("Bulan")
+                ax2.tick_params(axis='x', rotation=45)
+                ax2.grid(axis='y')
+                st.pyplot(fig2)
 
             st.markdown("---")
 
@@ -121,39 +122,40 @@ if data_file:
 
             st.markdown("---")
 
-            st.subheader("📘 Bunga Bulanan Buku IV per Bank (dalam Miliar Rupiah)")
-            df_buku_iv = df_filtered[df_filtered['Bank'].isin(buku_iv)]
-            df_buku_iv_grouped = df_buku_iv.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(index=ordered_bulans, columns=buku_iv)
-            fig_iv, ax_iv = plt.subplots()
-            df_buku_iv_grouped.plot(ax=ax_iv, marker='o')
-            for bank in df_buku_iv_grouped.columns:
-                for i, v in enumerate(df_buku_iv_grouped[bank]):
-                    if not pd.isna(v):
-                        ax_iv.text(i, v, f"{v:,.1f}", ha='center', va='bottom', fontsize=8)
-            ax_iv.set_ylabel("Bunga (Miliar Rp)")
-            ax_iv.set_xlabel("Bulan")
-            ax_iv.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iv.tick_params(axis='x', rotation=45)
-            ax_iv.grid(True)
-            st.pyplot(fig_iv)
+            col3, col4 = st.columns(2)
+            with col3:
+                st.subheader("📘 Bunga Bulanan Buku IV per Bank (dalam Miliar Rupiah)")
+                df_buku_iv = df_filtered[df_filtered['Bank'].isin(buku_iv)]
+                df_buku_iv_grouped = df_buku_iv.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(index=ordered_bulans, columns=buku_iv)
+                fig_iv, ax_iv = plt.subplots()
+                df_buku_iv_grouped.plot(ax=ax_iv, marker='o')
+                for bank in df_buku_iv_grouped.columns:
+                    for i, v in enumerate(df_buku_iv_grouped[bank]):
+                        if not pd.isna(v):
+                            ax_iv.text(i, v, f"{v:,.1f}", ha='center', va='bottom', fontsize=8)
+                ax_iv.set_ylabel("Bunga (Miliar Rp)")
+                ax_iv.set_xlabel("Bulan")
+                ax_iv.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                ax_iv.tick_params(axis='x', rotation=45)
+                ax_iv.grid(True)
+                st.pyplot(fig_iv)
 
-            st.markdown("---")
-
-            st.subheader("📙 Bunga Bulanan Buku III per Bank (dalam Miliar Rupiah)")
-            df_buku_iii = df_filtered[df_filtered['Bank'].isin(buku_iii)]
-            df_buku_iii_grouped = df_buku_iii.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(index=ordered_bulans, columns=buku_iii)
-            fig_iii, ax_iii = plt.subplots()
-            df_buku_iii_grouped.plot(ax=ax_iii, marker='o')
-            for bank in df_buku_iii_grouped.columns:
-                for i, v in enumerate(df_buku_iii_grouped[bank]):
-                    if not pd.isna(v):
-                        ax_iii.text(i, v, f"{v:,.1f}", ha='center', va='bottom', fontsize=8)
-            ax_iii.set_ylabel("Bunga (Miliar Rp)")
-            ax_iii.set_xlabel("Bulan")
-            ax_iii.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iii.tick_params(axis='x', rotation=45)
-            ax_iii.grid(True)
-            st.pyplot(fig_iii)
+            with col4:
+                st.subheader("📙 Bunga Bulanan Buku III per Bank (dalam Miliar Rupiah)")
+                df_buku_iii = df_filtered[df_filtered['Bank'].isin(buku_iii)]
+                df_buku_iii_grouped = df_buku_iii.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(index=ordered_bulans, columns=buku_iii)
+                fig_iii, ax_iii = plt.subplots()
+                df_buku_iii_grouped.plot(ax=ax_iii, marker='o')
+                for bank in df_buku_iii_grouped.columns:
+                    for i, v in enumerate(df_buku_iii_grouped[bank]):
+                        if not pd.isna(v):
+                            ax_iii.text(i, v, f"{v:,.1f}", ha='center', va='bottom', fontsize=8)
+                ax_iii.set_ylabel("Bunga (Miliar Rp)")
+                ax_iii.set_xlabel("Bulan")
+                ax_iii.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                ax_iii.tick_params(axis='x', rotation=45)
+                ax_iii.grid(True)
+                st.pyplot(fig_iii)
 
     except Exception as e:
         st.error(f"Gagal membaca file: {e}")
