@@ -34,15 +34,27 @@ if data_file:
             buku_iv = ["Bank BRI", "Bank Mandiri", "Bank BNI"]
             buku_iii = ["Bank BTN", "BSI", "BTN Syariah"]
 
-            # konversi dulu sebelum agregasi
             df['NominalJuta'] = df['Nominal'] / 1_000_000
             df['BungaJuta'] = df['Bunga'] / 1_000_000
+
+            st.sidebar.header("🔎 Filter Data")
+            selected_bulan = st.sidebar.multiselect("Pilih Bulan:", options=sorted(df['BulanTahun'].unique()))
+            selected_bank = st.sidebar.multiselect("Pilih Bank:", options=sorted(df['Bank'].unique()))
+            selected_tahun = st.sidebar.multiselect("Pilih Tahun:", options=sorted(df['Tahun'].unique()))
+
+            df_filtered = df.copy()
+            if selected_bulan:
+                df_filtered = df_filtered[df_filtered['BulanTahun'].isin(selected_bulan)]
+            if selected_bank:
+                df_filtered = df_filtered[df_filtered['Bank'].isin(selected_bank)]
+            if selected_tahun:
+                df_filtered = df_filtered[df_filtered['Tahun'].isin(selected_tahun)]
 
             col1, col2 = st.columns(2)
 
             with col1:
                 st.subheader("📈 Total Bunga Deposito per Bulan (Jutaan Rp)")
-                bunga_bulanan = df.groupby('BulanTahun')['BungaJuta'].sum()
+                bunga_bulanan = df_filtered.groupby('BulanTahun')['BungaJuta'].sum()
                 fig1, ax1 = plt.subplots()
                 bunga_bulanan.plot(kind='line', marker='o', ax=ax1)
                 ax1.yaxis.set_major_formatter(FuncFormatter(juta_formatter))
@@ -55,7 +67,7 @@ if data_file:
 
             with col2:
                 st.subheader("📊 Total Deposito per Bulan (Jutaan Rp)")
-                deposito_bulanan = df.groupby('BulanTahun')['NominalJuta'].sum()
+                deposito_bulanan = df_filtered.groupby('BulanTahun')['NominalJuta'].sum()
                 fig2, ax2 = plt.subplots()
                 deposito_bulanan.plot(kind='bar', ax=ax2)
                 ax2.yaxis.set_major_formatter(FuncFormatter(juta_formatter))
@@ -67,7 +79,7 @@ if data_file:
                 st.pyplot(fig2)
 
             st.subheader("🏦 Total Deposito per Bank (Jutaan Rp)")
-            deposito_bank = df.groupby('Bank')['NominalJuta'].sum()
+            deposito_bank = df_filtered.groupby('Bank')['NominalJuta'].sum()
             fig3, ax3 = plt.subplots()
             deposito_bank.plot(kind='bar', ax=ax3)
             ax3.yaxis.set_major_formatter(FuncFormatter(juta_formatter))
@@ -83,7 +95,7 @@ if data_file:
 
             with col3:
                 st.subheader("📘 Bunga Bulanan - Buku IV (Jutaan Rp)")
-                df_buku_iv = df[df['Bank'].isin(buku_iv)]
+                df_buku_iv = df_filtered[df_filtered['Bank'].isin(buku_iv)]
                 bunga_buku_iv = df_buku_iv.groupby('BulanTahun')['BungaJuta'].sum()
                 fig4, ax4 = plt.subplots()
                 bunga_buku_iv.plot(kind='line', marker='o', ax=ax4)
@@ -97,7 +109,7 @@ if data_file:
 
             with col4:
                 st.subheader("📙 Bunga Bulanan - Buku III (Jutaan Rp)")
-                df_buku_iii = df[df['Bank'].isin(buku_iii)]
+                df_buku_iii = df_filtered[df_filtered['Bank'].isin(buku_iii)]
                 bunga_buku_iii = df_buku_iii.groupby('BulanTahun')['BungaJuta'].sum()
                 fig5, ax5 = plt.subplots()
                 bunga_buku_iii.plot(kind='line', marker='o', ax=ax5)
@@ -110,7 +122,7 @@ if data_file:
                 st.pyplot(fig5)
 
             st.subheader("📋 Tabel Ringkasan Data (Nominal & Bunga dalam Jutaan Rp)")
-            df_display = df.copy()
+            df_display = df_filtered.copy()
             df_display['Nominal'] = df_display['NominalJuta']
             df_display['Bunga'] = df_display['BungaJuta']
             df_display = df_display.drop(columns=['NominalJuta', 'BungaJuta'])
