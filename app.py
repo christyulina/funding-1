@@ -37,7 +37,7 @@ if data_file:
             buku_iv = ["Bank BRI", "Bank Mandiri", "Bank BNI"]
             buku_iii = ["Bank BTN", "BSI", "BTN Syariah"]
 
-            df['NominalM'] = df['Nominal'] / 1_000_000_000  # dalam miliar
+            df['NominalM'] = df['Nominal'] / 1_000_000_000
             df['BungaM'] = df['Bunga'] / 1_000_000_000
 
             st.sidebar.header("🔎 Filter Data")
@@ -52,6 +52,36 @@ if data_file:
                 df_filtered = df_filtered[df_filtered['Bank'].isin(selected_bank)]
             if selected_tahun:
                 df_filtered = df_filtered[df_filtered['Tahun'].isin(selected_tahun)]
+
+            df_filtered['BulanTahun'] = pd.Categorical(df_filtered['BulanTahun'], categories=[b + ' ' + y for y in sorted(df_filtered['Tahun'].unique()) for b in bulan_order], ordered=True)
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("📈 Total Bunga Deposito per Bulan (Miliar Rp)")
+                bunga_bulanan = df_filtered.groupby('BulanTahun')['BungaM'].sum().sort_index()
+                fig1, ax1 = plt.subplots()
+                bunga_bulanan.plot(kind='line', marker='o', ax=ax1)
+                ax1.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                for i, v in enumerate(bunga_bulanan):
+                    ax1.text(i, v, f"{v:,.0f}", ha='center', va='bottom')
+                ax1.set_ylabel("Total Bunga (Miliar Rp)")
+                ax1.set_xlabel("Bulan")
+                ax1.grid(True)
+                st.pyplot(fig1)
+
+            with col2:
+                st.subheader("📊 Total Deposito per Bulan (Miliar Rp)")
+                deposito_bulanan = df_filtered.groupby('BulanTahun')['NominalM'].sum().sort_index()
+                fig2, ax2 = plt.subplots()
+                deposito_bulanan.plot(kind='bar', ax=ax2)
+                ax2.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
+                for i, v in enumerate(deposito_bulanan):
+                    ax2.text(i, v, f"{v:,.0f}", ha='center', va='bottom')
+                ax2.set_ylabel("Total Deposito (Miliar Rp)")
+                ax2.set_xlabel("Bulan")
+                ax2.grid(axis='y')
+                st.pyplot(fig2)
 
             st.subheader("🥧 Total Deposito per Bank (dalam Miliar Rupiah)")
             if selected_bulan:
