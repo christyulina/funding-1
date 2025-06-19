@@ -74,6 +74,7 @@ if data_file:
                     ax1.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
                 ax1.set_ylabel("Total Bunga (Miliar Rp)")
                 ax1.set_xlabel("Bulan")
+                ax1.tick_params(axis='x', rotation=45)
                 ax1.grid(True)
                 st.pyplot(fig1)
 
@@ -87,6 +88,7 @@ if data_file:
                     ax2.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
                 ax2.set_ylabel("Total Deposito (Miliar Rp)")
                 ax2.set_xlabel("Bulan")
+                ax2.tick_params(axis='x', rotation=45)
                 ax2.grid(axis='y')
                 st.pyplot(fig2)
 
@@ -107,7 +109,7 @@ if data_file:
             ax_iv.set_ylabel("Bunga (Miliar Rp)")
             ax_iv.set_xlabel("Bulan")
             ax_iv.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iv.set_xticklabels(ordered_bulans, rotation=45)
+            ax_iv.tick_params(axis='x', rotation=45)
             ax_iv.grid(True)
             st.pyplot(fig_iv)
 
@@ -119,7 +121,7 @@ if data_file:
             ax_iii.set_ylabel("Bunga (Miliar Rp)")
             ax_iii.set_xlabel("Bulan")
             ax_iii.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iii.set_xticklabels(ordered_bulans, rotation=45)
+            ax_iii.tick_params(axis='x', rotation=45)
             ax_iii.grid(True)
             st.pyplot(fig_iii)
 
