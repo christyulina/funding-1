@@ -98,7 +98,19 @@ if data_file:
             st.markdown("---")
 
             st.subheader("🥧 Total Deposito per Bank (dalam Miliar Rupiah)")
-            deposito_bank = df_filtered.groupby('Bank')['NominalM'].sum()
+            selected_bulan_pie = with_all_checkbox("Bulan (Pie Chart)", all_months, "pie_bulan")
+            selected_bank_pie = with_all_checkbox("Bank (Pie Chart)", all_banks, "pie_bank")
+            selected_tahun_pie = with_all_checkbox("Tahun (Pie Chart)", all_years, "pie_tahun")
+
+            df_pie = df.copy()
+            if selected_bulan_pie:
+                df_pie = df_pie[df_pie['NamaBulan'].isin(selected_bulan_pie)]
+            if selected_bank_pie:
+                df_pie = df_pie[df_pie['Bank'].isin(selected_bank_pie)]
+            if selected_tahun_pie:
+                df_pie = df_pie[df_pie['Tahun'].isin(selected_tahun_pie)]
+
+            deposito_bank = df_pie.groupby('Bank')['NominalM'].sum()
             fig_pie, ax_pie = plt.subplots()
             deposito_bank.plot(kind='pie', ax=ax_pie, autopct=lambda pct: f'{pct:.1f}%\n({(pct/100)*deposito_bank.sum():.1f})', startangle=90)
             ax_pie.set_ylabel("")
