@@ -12,11 +12,9 @@ bulan_dict = {
     '09': 'September', '10': 'Oktober', '11': 'November', '12': 'Desember'
 }
 
-bulan_order = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-
 
 def miliar_formatter(x, pos):
-    return f'{x:,.0f}'
+    return f'{x:,.1f}'
 
 data_file = st.file_uploader("📂 Upload file Excel", type=[".xlsx", ".xls"])
 
@@ -41,9 +39,13 @@ if data_file:
             df['BungaM'] = df['Bunga'] / 1_000_000_000
 
             st.sidebar.header("🔎 Filter Data")
-            selected_bulan = st.sidebar.multiselect("Pilih Bulan:", options=sorted(df['NamaBulan'].unique(), key=lambda x: bulan_order.index(x)))
-            selected_bank = st.sidebar.multiselect("Pilih Bank:", options=sorted(df['Bank'].unique()))
-            selected_tahun = st.sidebar.multiselect("Pilih Tahun:", options=sorted(df['Tahun'].unique()))
+            all_months = sorted(df['NamaBulan'].unique(), key=lambda x: list(bulan_dict.values()).index(x))
+            all_years = sorted(df['Tahun'].unique())
+            all_banks = sorted(df['Bank'].unique())
+
+            selected_bulan = st.sidebar.multiselect("Pilih Bulan:", options=all_months, default=all_months)
+            selected_bank = st.sidebar.multiselect("Pilih Bank:", options=all_banks, default=all_banks)
+            selected_tahun = st.sidebar.multiselect("Pilih Tahun:", options=all_years, default=all_years)
 
             df_filtered = df.copy()
             if selected_bulan:
@@ -53,7 +55,12 @@ if data_file:
             if selected_tahun:
                 df_filtered = df_filtered[df_filtered['Tahun'].isin(selected_tahun)]
 
-            df_filtered['BulanTahun'] = pd.Categorical(df_filtered['BulanTahun'], categories=[b + ' ' + y for y in sorted(df_filtered['Tahun'].unique()) for b in bulan_order], ordered=True)
+            ordered_bulans = df_filtered[['NamaBulan', 'Tahun']].drop_duplicates()
+            ordered_bulans['BulanTahun'] = ordered_bulans['NamaBulan'] + ' ' + ordered_bulans['Tahun']
+            ordered_bulans['order'] = ordered_bulans['NamaBulan'].apply(lambda x: list(bulan_dict.values()).index(x))
+            ordered_bulans = ordered_bulans.sort_values(['Tahun', 'order'])['BulanTahun'].tolist()
+
+            df_filtered['BulanTahun'] = pd.Categorical(df_filtered['BulanTahun'], categories=ordered_bulans, ordered=True)
 
             col1, col2 = st.columns(2)
 
@@ -64,7 +71,7 @@ if data_file:
                 bunga_bulanan.plot(kind='line', marker='o', ax=ax1)
                 ax1.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
                 for i, v in enumerate(bunga_bulanan):
-                    ax1.text(i, v, f"{v:,.0f}", ha='center', va='bottom')
+                    ax1.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
                 ax1.set_ylabel("Total Bunga (Miliar Rp)")
                 ax1.set_xlabel("Bulan")
                 ax1.grid(True)
@@ -77,7 +84,7 @@ if data_file:
                 deposito_bulanan.plot(kind='bar', ax=ax2)
                 ax2.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
                 for i, v in enumerate(deposito_bulanan):
-                    ax2.text(i, v, f"{v:,.0f}", ha='center', va='bottom')
+                    ax2.text(i, v, f"{v:,.1f}", ha='center', va='bottom')
                 ax2.set_ylabel("Total Deposito (Miliar Rp)")
                 ax2.set_xlabel("Bulan")
                 ax2.grid(axis='y')
@@ -88,33 +95,31 @@ if data_file:
                 df_pie = df_filtered.copy()
                 deposito_bank = df_pie.groupby('Bank')['NominalM'].sum()
                 fig_pie, ax_pie = plt.subplots()
-                deposito_bank.plot(kind='pie', ax=ax_pie, autopct='%1.0f', startangle=90)
+                deposito_bank.plot(kind='pie', ax=ax_pie, autopct=lambda pct: f'{pct:.1f}%\n({(pct/100)*deposito_bank.sum():.1f})', startangle=90)
                 ax_pie.set_ylabel("")
                 st.pyplot(fig_pie)
 
             st.subheader("📘 Bunga Bulanan Buku IV per Bank (dalam Miliar Rupiah)")
             df_buku_iv = df_filtered[df_filtered['Bank'].isin(buku_iv)]
-            df_buku_iv_grouped = df_buku_iv.groupby(['NamaBulan', 'Bank'])['BungaM'].sum().unstack().reindex(bulan_order)
+            df_buku_iv_grouped = df_buku_iv.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(ordered_bulans)
             fig_iv, ax_iv = plt.subplots()
             df_buku_iv_grouped.plot(ax=ax_iv, marker='o')
             ax_iv.set_ylabel("Bunga (Miliar Rp)")
             ax_iv.set_xlabel("Bulan")
             ax_iv.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iv.set_xticks(range(len(bulan_order)))
-            ax_iv.set_xticklabels(bulan_order, rotation=45)
+            ax_iv.set_xticklabels(ordered_bulans, rotation=45)
             ax_iv.grid(True)
             st.pyplot(fig_iv)
 
             st.subheader("📙 Bunga Bulanan Buku III per Bank (dalam Miliar Rupiah)")
             df_buku_iii = df_filtered[df_filtered['Bank'].isin(buku_iii)]
-            df_buku_iii_grouped = df_buku_iii.groupby(['NamaBulan', 'Bank'])['BungaM'].sum().unstack().reindex(bulan_order)
+            df_buku_iii_grouped = df_buku_iii.groupby(['BulanTahun', 'Bank'])['BungaM'].sum().unstack().reindex(ordered_bulans)
             fig_iii, ax_iii = plt.subplots()
             df_buku_iii_grouped.plot(ax=ax_iii, marker='o')
             ax_iii.set_ylabel("Bunga (Miliar Rp)")
             ax_iii.set_xlabel("Bulan")
             ax_iii.yaxis.set_major_formatter(FuncFormatter(miliar_formatter))
-            ax_iii.set_xticks(range(len(bulan_order)))
-            ax_iii.set_xticklabels(bulan_order, rotation=45)
+            ax_iii.set_xticklabels(ordered_bulans, rotation=45)
             ax_iii.grid(True)
             st.pyplot(fig_iii)
 
